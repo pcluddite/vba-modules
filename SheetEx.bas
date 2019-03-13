@@ -1,4 +1,3 @@
-Attribute VB_Name = "SheetEx"
 '
 ' SheetEx
 ' Copyright (c) 2016-2017 Timothy Baxendale (pcluddite@outlook.com)
@@ -21,9 +20,7 @@ Option Explicit
 '
 ' Last update: 11/17/17
 ' Requires: N/A
-'
-' Miscelaneous functions for interacting with sheets and ranges
-'
+' Description: Miscelaneous functions for interacting with sheets and ranges
 '
 ' Change the SHEETEX_VER constant to keep certain backward compatability
 ' Revisions stack on top of one another, i.e. If you roll back to Rev 1000, you will revert
@@ -40,7 +37,6 @@ Option Explicit
 '   1009 - do not use clipboard by default
 '   1010 - CURRENT VERSION
 '
-
 #Const SHEETEX_VER = 1010
 #Const SAFE_RANGE_ENABLED = True ' set to True for bounds checking on ranges
 
