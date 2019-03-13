@@ -1,4 +1,3 @@
-Attribute VB_Name = "Win32File"
 '
 ' Win32File
 ' Copyright (c) 2016-2017 Timothy Baxendale (pcluddite@outlook.com)
