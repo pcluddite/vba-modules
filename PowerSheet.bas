@@ -1,4 +1,3 @@
-Attribute VB_Name = "PowerSheet"
 '
 ' PowerSheet
 ' Copyright (c) 2016-2017 Timothy Baxendale (pcluddite@outlook.com)
