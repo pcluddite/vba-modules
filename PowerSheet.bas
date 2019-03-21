@@ -1,6 +1,6 @@
 '
 ' PowerSheet
-' Copyright (c) 2016-2017 Timothy Baxendale (pcluddite@outlook.com)
+' Copyright (c) 2016-2019 Timothy Baxendale (pcluddite@outlook.com)
 ' 
 ' This library is free software; you can redistribute it and/or
 ' modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
 '
 Option Explicit
 '
-' Last update: 7/5/17
+' Last update: 3/21/19
 ' Requires: SheetEx.bas [Rev 1010]
 ' Description: Apply complex functions to transform data in ranges
 '
@@ -403,6 +403,41 @@ Sub ApplyFormula(ByVal Ranges As Variant, ByRef Destination As Variant, ByVal Fo
     End With
         
     ClearTemp tmp
+End Sub
+
+'
+' Applies an excel formula in place to a single dimensional VBA array. The array can ONLY contain primitive types.
+' Objects are not supported and could produce unexpected results
+'
+' arr - the single dimensional array of values
+' Formula - the formula to apply to those values. %1 will be replaced with the value of the array
+' Clipboard - whether or not to use the clipboard
+'
+' Example:
+'     arr = Array(1, 2, 3, 4, 5)
+'     ApplyFormulaToArray arr, "=%1 + 5"
+' Output:
+'     arr = 6, 7, 8, 9, 10
+'
+Sub ApplyFormulaToArray(ByRef arr As Variant, ByVal Formula As String, Optional ByVal Clipboard As Boolean = True)
+    With TempSheetInternal
+        Dim nRow As Long
+        Dim x As Long
+        
+        Let nRow = 1
+        For x = LBound(arr) To UBound(arr)
+            .Cells(nRow, "A").Value = arr(x)
+            nRow = nRow + 1
+        Next x
+        
+        FillValues .Columns("B").Resize(RowSize:=nRow - 1), Replace(Formula, "%1", "A1"), Calculate:=True, Clipboard:=Clipboard, ArrayFormula:=False
+                
+        Let nRow = 1
+        For x = LBound(arr) To UBound(arr)
+            arr(x) = .Cells(nRow, "B").Value
+            nRow = nRow + 1
+        Next x
+    End With
 End Sub
 
 '
