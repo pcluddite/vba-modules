@@ -1,24 +1,24 @@
 '
 ' PowerSheet
 ' Copyright (c) 2016-2019 Timothy Baxendale (pcluddite@outlook.com)
-' 
+'
 ' This library is free software; you can redistribute it and/or
 ' modify it under the terms of the GNU Lesser General Public
 ' License as published by the Free Software Foundation; either
 ' version 2.1 of the License, or (at your option) any later version.
-' 
+'
 ' This library is distributed in the hope that it will be useful,
 ' but WITHOUT ANY WARRANTY; without even the implied warranty of
 ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ' Lesser General Public License for more details.
-' 
+'
 ' You should have received a copy of the GNU Lesser General Public
 ' License along with this library; if not, write to the Free Software
 ' Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 '
 Option Explicit
 '
-' Last update: 3/21/19
+' Last update: 11/02/19
 ' Requires: SheetEx.bas [Rev 1010]
 ' Description: Apply complex functions to transform data in ranges
 '
@@ -32,13 +32,17 @@ Option Explicit
 '   1012 - use old parameter order for TempSheet property
 '   1013 - apply no restrictions on temp sheets
 '   1015 - do not use clipboard by default
-'   1016 - CURRENT VERSION
+'   1016 - include ClearTemp subroutine; use ClearAfter variable, not macro
+'   1017 - CURRENT VERSION
 '
-#Const POWERSHEET_VER = 1016
+#Const POWERSHEET_VER = 1017
+#Const CLEAR_AFTER = False
+
+#If POWERSHEET_VER < 1017 Then
+Public ClearAfter As Boolean
+#End If
 
 Public Const TEMP_SHEET As String = "PowerSheet.Temp"
-
-Public ClearAfter As Boolean
 Private CanUndo As Boolean
 
 '
@@ -68,7 +72,11 @@ Private Property Get TempSheetInternal(Optional ByVal Index As Long = -1, Option
     On Error GoTo catch
     Set TempSheetInternal = ThisWorkbook.Worksheets(SheetName)
     On Error GoTo 0
+#If POWERSHEET_VER < 1017 Then
     If Not ClearAfter Then TempSheetInternal.UsedRange.Delete
+#ElseIf Not CLEAR_AFTER Then
+    TempSheetInternal.UsedRange.Delete
+#End If
     Exit Property
 catch:
     If Create Then
@@ -87,17 +95,6 @@ catch:
     Set TryCreateSheet = Worksheets.Add
     TryCreateSheet.Name = SheetName
 End Function
-
-'
-' Clears a temporary sheet. If the Unique flag has been set, the sheet is deleted. Otherwise, the used range is deleted.
-'
-Sub ClearTemp(Optional ByRef Sheet As Worksheet)
-    If ClearAfter Then
-        Dim tmp As Worksheet
-        Set tmp = TempSheetInternal(Create:=False)
-        If Not (tmp Is Nothing) Then tmp.UsedRange.Delete
-    End If
-End Sub
 
 '
 ' Performs an index match on a range and replaces that range with those values
@@ -139,8 +136,12 @@ Sub TransformRange(ByRef DestValues As Variant, ByRef SourceLookup As Variant, B
     
     SheetEx.FillValues rColumnB, Formula, Clipboard:=Clipboard
     CopyOption Array(rColumnB, rDestValues), Clipboard
-    
-    ClearTemp tmp
+
+#If POWERSHEET_VER < 1017 Then
+    If ClearAfter Then tmp.UsedRange.Delete
+#ElseIf CLEAR_AFTER Then
+    tmp.UsedRange.Delete
+#End If
 End Sub
 
 '
@@ -178,7 +179,11 @@ Sub NumberValues(ByRef Range As Variant, Optional ByVal StartCount As Double = 1
     SheetEx.JoinReplace A, B, C, D
     SheetEx.FastCopy D, rng
     
-    ClearTemp tmp
+#If POWERSHEET_VER < 1017 Then
+    If ClearAfter Then tmp.UsedRange.Delete
+#ElseIf CLEAR_AFTER Then
+    tmp.UsedRange.Delete
+#End If
 End Sub
 
 '
@@ -211,7 +216,11 @@ Sub RRemoveDuplicates(ByRef Range As Variant, Optional ByRef Columns As Variant,
         rEmpties.Delete xlShiftUp
     End If
     
-    ClearTemp tmp
+#If POWERSHEET_VER < 1017 Then
+    If ClearAfter Then tmp.UsedRange.Delete
+#ElseIf CLEAR_AFTER Then
+    tmp.UsedRange.Delete
+#End If
     
 End Sub
 
@@ -273,8 +282,12 @@ Function CopyUnique(ByVal Source As Variant, ByRef Destination As Variant, Optio
     
     CopyUnique = CopySingle(tmp, rDest, Paste:=Paste, Append:=Append)
     
-    ClearTemp tmp
-    
+#If POWERSHEET_VER < 1017 Then
+    If ClearAfter Then tmp.UsedRange.Delete
+#ElseIf CLEAR_AFTER Then
+    tmp.UsedRange.Delete
+#End If
+
 End Function
 
 '
@@ -348,7 +361,11 @@ Sub JoinPreserve(ByRef SourceKeys As Variant, ByRef SourceValues As Variant, ByR
         CopyOption Array(TestCol, rDestValues), Clipboard
     End With
     
-    ClearTemp tmp
+#If POWERSHEET_VER < 1017 Then
+    If ClearAfter Then tmp.UsedRange.Delete
+#ElseIf CLEAR_AFTER Then
+    tmp.UsedRange.Delete
+#End If
 End Sub
 
 '
@@ -402,7 +419,11 @@ Sub ApplyFormula(ByVal Ranges As Variant, ByRef Destination As Variant, ByVal Fo
         CopyOption Array(Final, Destination), Clipboard
     End With
         
-    ClearTemp tmp
+#If POWERSHEET_VER < 1017 Then
+    If ClearAfter Then tmp.UsedRange.Delete
+#ElseIf CLEAR_AFTER Then
+    tmp.UsedRange.Delete
+#End If
 End Sub
 
 '
@@ -437,6 +458,11 @@ Sub ApplyFormulaToArray(ByRef arr As Variant, ByVal Formula As String, Optional 
             arr(x) = .Cells(nRow, "B").Value
             nRow = nRow + 1
         Next x
+#If POWERSHEET_VER < 1017 Then
+    If ClearAfter Then .UsedRange.Delete
+#ElseIf CLEAR_AFTER Then
+    .UsedRange.Delete
+#End If
     End With
 End Sub
 
@@ -508,7 +534,11 @@ Sub AddToColumn(ByRef SourceKeys As Variant, ByRef SourceValues As Variant, ByRe
         CopyOption Array(.Columns("D"), DestValues), Clipboard
     End With
     
-    ClearTemp tmp
+#If POWERSHEET_VER < 1017 Then
+    If ClearAfter Then tmp.UsedRange.Delete
+#ElseIf CLEAR_AFTER Then
+    tmp.UsedRange.Delete
+#End If
 End Sub
 
 '
@@ -523,18 +553,25 @@ End Sub
 ' Append - append instead of overwrite the destination
 '
 Function CopyDistinct(ByRef Column1 As Variant, ByRef Column2 As Variant, ByRef Destination As Variant, Optional ByVal Paste As XlPasteType = xlPasteValues, Optional ByVal CellType As XlCellType, Optional ByVal Append As Boolean = False) As Long
-    Dim tmp As Worksheet, rDest As Range
+    Dim tmp1 As Worksheet, tmp2 As Worksheet, rDest As Range
     Dim copied As Long
     
-    With TempSheetInternal(-2)
+    Set tmp1 = TempSheetInternal(-2)
+    With tmp1
         CopyUnique Column1, .Columns("A"), CellType:=CellType, Paste:=Paste
         CopyUnique Column2, .Columns("B"), CellType:=CellType, Paste:=Paste
         
-        Set tmp = TempSheetInternal
-        copied = CopySingle(.Range(.Cells(1, 1), SheetEx.LastCell(.UsedRange)), tmp.Range("A2"))
+        Set tmp2 = TempSheetInternal
+        copied = CopySingle(.Range(.Cells(1, 1), SheetEx.LastCell(.UsedRange)), tmp2.Range("A2"))
     End With
     
-    With ROffset(tmp, Height:=copied + 1)
+#If POWERSHEET_VER < 1017 Then
+    If ClearAfter Then tmp1.UsedRange.Delete
+#ElseIf CLEAR_AFTER Then
+    tmp1.UsedRange.Delete
+#End If
+    
+    With ROffset(tmp2, Height:=copied + 1)
         Dim nas As Range
         .Range("A1:C1").Value2 = "HEADER"
         .Range("A:C").AutoFilter
@@ -550,7 +587,11 @@ Function CopyDistinct(ByRef Column1 As Variant, ByRef Column2 As Variant, ByRef 
         If CopyDistinct > 0 Then CopySingle RShrink(.Columns("A"), Height:=-1), Destination, Append:=Append
     End With
     
-    ClearTemp tmp
+#If POWERSHEET_VER < 1017 Then
+    If ClearAfter Then tmp2.UsedRange.Delete
+#ElseIf CLEAR_AFTER Then
+    tmp2.UsedRange.Delete
+#End If
 End Function
 
 Private Function CopyOption(ByRef Ranges As Variant, ByVal Clipboard As Boolean, Optional ByVal StackSources As Boolean = True)
@@ -575,3 +616,15 @@ Sub FormatColumn(ByRef ColumnRange As Variant, ByVal Format As String, Optional 
         ApplyFormula Ranges:=.Columns(1), Destination:=.Columns(1), Formula:="=" & szFormula, Clipboard:=Clipboard
     End With
 End Sub
+
+
+#If POWERSHEET_VER < 1017 Then
+'
+' Clears a temporary sheet by deleting the used range
+'
+Sub ClearTemp(Optional ByRef Sheet As Worksheet)
+    Dim tmp As Worksheet
+    Set tmp = TempSheetInternal(Create:=False)
+    If Not (tmp Is Nothing) Then tmp.UsedRange.Delete
+End Sub
+#End If
