@@ -1,5 +1,5 @@
 '
-' PowerSheet
+' SqlHelper
 ' Copyright (c) 2020 Timothy Baxendale (pcluddite@outlook.com)
 '
 ' This library is free software; you can redistribute it and/or
